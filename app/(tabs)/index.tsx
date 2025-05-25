@@ -1,3 +1,4 @@
+import { MaterialIcons } from "@expo/vector-icons";
 import { useEffect, useState } from "react";
 import {
   Linking,
@@ -57,7 +58,51 @@ export default function HomeScreen() {
           return Linking.openURL(appleMapsUrl);
         }
       })
-      .catch((err) => console.error("Error membuka peta:", err));
+      .catch((err) => console.error("Error opening map:", err));
+  };
+
+  // Function to open direction in Google Maps
+  const openDirections = (address: string) => {
+    const destination = encodeURIComponent(address);
+    const url = `https://www.google.com/maps/dir/?api=1&destination=${destination}`;
+
+    Linking.canOpenURL(url)
+      .then((supported) => {
+        if (supported) {
+          return Linking.openURL(url);
+        } else {
+          console.error("Google Maps is not available");
+        }
+      })
+      .catch((err) => console.error("Error opening directions:", err));
+  };
+
+  // Function to handle phone call
+  const handlePhoneCall = (phoneNumber: string) => {
+    // Clean phone number from non-numeric characters
+    const cleanNumber = phoneNumber.replace(/[^\d+]/g, "");
+
+    // Ensure number starts with +62 or 0
+    const formattedNumber =
+      cleanNumber.startsWith("+62") || cleanNumber.startsWith("0")
+        ? cleanNumber
+        : `+62${cleanNumber}`;
+
+    const phoneUrl = `telprompt:${formattedNumber}`;
+
+    Linking.canOpenURL(phoneUrl)
+      .then((supported) => {
+        if (supported) {
+          return Linking.openURL(phoneUrl);
+        } else {
+          // Try fallback to tel: if telprompt: is not supported
+          return Linking.openURL(`tel:${formattedNumber}`);
+        }
+      })
+      .catch((err) => {
+        console.error("Error opening phone app:", err);
+        alert("Cannot open phone application");
+      });
   };
 
   if (loading) {
@@ -74,7 +119,7 @@ export default function HomeScreen() {
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: "#fff" }}>
-      {/* Header Fixed */}
+      {/* Fixed Header */}
       <View
         style={{
           padding: 16,
@@ -91,7 +136,7 @@ export default function HomeScreen() {
         <Text variant="headlineMedium">Hospitals List</Text>
       </View>
 
-      {/* Content Scrollable */}
+      {/* Scrollable Content */}
       <ScrollView
         contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 16 }}
       >
@@ -131,12 +176,23 @@ export default function HomeScreen() {
             <Card.Actions>
               <Button
                 mode="contained"
-                style={{ marginRight: 8 }}
-                onPress={() => Linking.openURL(`tel:${hospital.phone}`)}
+                onPress={() => handlePhoneCall(hospital.phone)}
+                icon={({ size, color }) => (
+                  <MaterialIcons name="phone" size={size} color={color} />
+                )}
               >
                 Contact
               </Button>
-              <Button mode="outlined">Details</Button>
+              <Button
+                mode="contained"
+                onPress={() => openDirections(hospital.address)}
+                icon={({ size, color }) => (
+                  <MaterialIcons name="directions" size={size} color={color} />
+                )}
+                textColor="white"
+              >
+                Get Direction
+              </Button>
             </Card.Actions>
           </Card>
         ))}
