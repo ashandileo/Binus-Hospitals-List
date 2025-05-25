@@ -43,24 +43,6 @@ export default function HomeScreen() {
     }
   };
 
-  // Function to open maps
-  const openMap = (province: string) => {
-    const query = encodeURIComponent(`${province}, Indonesia`);
-    // Try to open in Google Maps
-    const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${query}`;
-    Linking.canOpenURL(mapsUrl)
-      .then((supported) => {
-        if (supported) {
-          return Linking.openURL(mapsUrl);
-        } else {
-          // Fallback to Apple Maps for iOS
-          const appleMapsUrl = `maps://maps.apple.com/?q=${query}`;
-          return Linking.openURL(appleMapsUrl);
-        }
-      })
-      .catch((err) => console.error("Error opening map:", err));
-  };
-
   // Function to open direction in Google Maps
   const openDirections = (address: string) => {
     const destination = encodeURIComponent(address);
