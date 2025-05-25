@@ -1,5 +1,11 @@
 import { useEffect, useState } from "react";
-import { SafeAreaView, ScrollView, View } from "react-native";
+import {
+  Linking,
+  SafeAreaView,
+  ScrollView,
+  TouchableOpacity,
+  View,
+} from "react-native";
 import { ActivityIndicator, Button, Card, Text } from "react-native-paper";
 
 interface Hospital {
@@ -10,7 +16,7 @@ interface Hospital {
   province: string;
 }
 
-// Array of hospital images
+// Hospital Image
 const hospitalImages =
   "https://rsud-soekarno.babelprov.go.id/sites/default/files/images/gedung%20rs.jpg";
 
@@ -34,6 +40,24 @@ export default function HomeScreen() {
       console.error("Error fetching hospitals:", error);
       setLoading(false);
     }
+  };
+
+  // Function to open maps
+  const openMap = (province: string) => {
+    const query = encodeURIComponent(`${province}, Indonesia`);
+    // Try to open in Google Maps
+    const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${query}`;
+    Linking.canOpenURL(mapsUrl)
+      .then((supported) => {
+        if (supported) {
+          return Linking.openURL(mapsUrl);
+        } else {
+          // Fallback to Apple Maps for iOS
+          const appleMapsUrl = `maps://maps.apple.com/?q=${query}`;
+          return Linking.openURL(appleMapsUrl);
+        }
+      })
+      .catch((err) => console.error("Error membuka peta:", err));
   };
 
   if (loading) {
@@ -88,18 +112,28 @@ export default function HomeScreen() {
               >
                 {hospital.address}
               </Text>
-              <Text
-                variant="bodyMedium"
-                style={{ color: "#666666", marginBottom: 4 }}
-              >
-                Province: {hospital.province}
-              </Text>
+              <TouchableOpacity onPress={() => openMap(hospital.province)}>
+                <Text
+                  variant="bodyMedium"
+                  style={{
+                    color: "#2196F3",
+                    marginBottom: 4,
+                    textDecorationLine: "underline",
+                  }}
+                >
+                  Province: {hospital.province} (Tap to view map)
+                </Text>
+              </TouchableOpacity>
               <Text variant="bodyMedium" style={{ color: "#666666" }}>
                 Phone: {hospital.phone}
               </Text>
             </Card.Content>
             <Card.Actions>
-              <Button mode="contained" style={{ marginRight: 8 }}>
+              <Button
+                mode="contained"
+                style={{ marginRight: 8 }}
+                onPress={() => Linking.openURL(`tel:${hospital.phone}`)}
+              >
                 Contact
               </Button>
               <Button mode="outlined">Details</Button>
