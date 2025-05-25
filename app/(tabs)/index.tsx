@@ -194,7 +194,9 @@ export default function HomeScreen() {
                 >
                   {hospital.address}
                 </Text>
-                <TouchableOpacity onPress={() => openMap(hospital.province)}>
+                <TouchableOpacity
+                  onPress={() => openDirections(hospital.address)}
+                >
                   <Text
                     variant="bodyMedium"
                     style={{
