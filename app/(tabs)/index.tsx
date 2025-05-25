@@ -217,6 +217,7 @@ export default function HomeScreen() {
                   icon={({ size, color }) => (
                     <MaterialIcons name="phone" size={size} color={color} />
                   )}
+                  style={{ backgroundColor: "#2196F3" }}
                 >
                   Contact
                 </Button>
@@ -231,6 +232,7 @@ export default function HomeScreen() {
                     />
                   )}
                   textColor="white"
+                  style={{ backgroundColor: "#4CAF50" }}
                 >
                   Get Direction
                 </Button>
