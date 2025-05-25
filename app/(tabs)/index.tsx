@@ -7,7 +7,13 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { ActivityIndicator, Button, Card, Text } from "react-native-paper";
+import {
+  ActivityIndicator,
+  Button,
+  Card,
+  Searchbar,
+  Text,
+} from "react-native-paper";
 
 interface Hospital {
   name: string;
@@ -17,17 +23,11 @@ interface Hospital {
   province: string;
 }
 
-// Hospital Image
-const hospitalImages =
-  "https://rsud-soekarno.babelprov.go.id/sites/default/files/images/gedung%20rs.jpg";
-
 export default function HomeScreen() {
   const [hospitals, setHospitals] = useState<Hospital[]>([]);
+  const [filteredHospitals, setFilteredHospitals] = useState<Hospital[]>([]);
   const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    fetchHospitals();
-  }, []);
+  const [searchQuery, setSearchQuery] = useState("");
 
   const fetchHospitals = async () => {
     try {
@@ -105,6 +105,22 @@ export default function HomeScreen() {
       });
   };
 
+  useEffect(() => {
+    fetchHospitals();
+  }, []);
+
+  // Filter hospitals based on search query
+  useEffect(() => {
+    const filtered = hospitals.filter((hospital) => {
+      const searchLower = searchQuery.toLowerCase();
+      return (
+        hospital.name.toLowerCase().includes(searchLower) ||
+        hospital.province.toLowerCase().includes(searchLower)
+      );
+    });
+    setFilteredHospitals(filtered);
+  }, [searchQuery, hospitals]);
+
   if (loading) {
     return (
       <SafeAreaView style={{ flex: 1, backgroundColor: "#fff" }}>
@@ -133,69 +149,95 @@ export default function HomeScreen() {
           shadowRadius: 2,
         }}
       >
-        <Text variant="headlineMedium">Hospitals List</Text>
+        <Text variant="headlineMedium" style={{ marginBottom: 16 }}>
+          Hospitals List
+        </Text>
+        <Searchbar
+          placeholder="Search hospital or province"
+          onChangeText={setSearchQuery}
+          value={searchQuery}
+          style={{ elevation: 0, backgroundColor: "#f5f5f5" }}
+          icon={({ size, color }) => (
+            <MaterialIcons name="search" size={size} color={color} />
+          )}
+          clearIcon={({ size, color }) => (
+            <MaterialIcons name="clear" size={size} color={color} />
+          )}
+        />
       </View>
 
       {/* Scrollable Content */}
       <ScrollView
         contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 16 }}
       >
-        {hospitals.map((hospital, index) => (
-          <Card key={index} style={{ marginBottom: 16 }}>
-            <Card.Cover
-              source={{ uri: hospitalImages }}
-              style={{ height: 200 }}
-              resizeMode="cover"
-            />
-            <Card.Content style={{ paddingVertical: 16 }}>
-              <Text variant="titleLarge" style={{ marginBottom: 8 }}>
-                {hospital.name}
-              </Text>
-              <Text
-                variant="bodyMedium"
-                style={{ color: "#666666", marginBottom: 4 }}
-              >
-                {hospital.address}
-              </Text>
-              <TouchableOpacity onPress={() => openMap(hospital.province)}>
+        {filteredHospitals.length === 0 && !loading ? (
+          <View style={{ padding: 16, alignItems: "center" }}>
+            <Text variant="bodyLarge" style={{ color: "#666666" }}>
+              No hospitals found
+            </Text>
+          </View>
+        ) : (
+          filteredHospitals.map((hospital, index) => (
+            <Card key={index} style={{ marginBottom: 16 }}>
+              <Card.Cover
+                source={require("@/assets/images/hospital.jpg")}
+                style={{ height: 200 }}
+                resizeMode="cover"
+              />
+              <Card.Content style={{ paddingVertical: 16 }}>
+                <Text variant="titleLarge" style={{ marginBottom: 8 }}>
+                  {hospital.name}
+                </Text>
                 <Text
                   variant="bodyMedium"
-                  style={{
-                    color: "#2196F3",
-                    marginBottom: 4,
-                    textDecorationLine: "underline",
-                  }}
+                  style={{ color: "#666666", marginBottom: 4 }}
                 >
-                  Province: {hospital.province} (Tap to view map)
+                  {hospital.address}
                 </Text>
-              </TouchableOpacity>
-              <Text variant="bodyMedium" style={{ color: "#666666" }}>
-                Phone: {hospital.phone}
-              </Text>
-            </Card.Content>
-            <Card.Actions>
-              <Button
-                mode="contained"
-                onPress={() => handlePhoneCall(hospital.phone)}
-                icon={({ size, color }) => (
-                  <MaterialIcons name="phone" size={size} color={color} />
-                )}
-              >
-                Contact
-              </Button>
-              <Button
-                mode="contained"
-                onPress={() => openDirections(hospital.address)}
-                icon={({ size, color }) => (
-                  <MaterialIcons name="directions" size={size} color={color} />
-                )}
-                textColor="white"
-              >
-                Get Direction
-              </Button>
-            </Card.Actions>
-          </Card>
-        ))}
+                <TouchableOpacity onPress={() => openMap(hospital.province)}>
+                  <Text
+                    variant="bodyMedium"
+                    style={{
+                      color: "#2196F3",
+                      marginBottom: 4,
+                      textDecorationLine: "underline",
+                    }}
+                  >
+                    Province: {hospital.province} (Tap to view map)
+                  </Text>
+                </TouchableOpacity>
+                <Text variant="bodyMedium" style={{ color: "#666666" }}>
+                  Phone: {hospital.phone}
+                </Text>
+              </Card.Content>
+              <Card.Actions>
+                <Button
+                  mode="contained"
+                  onPress={() => handlePhoneCall(hospital.phone)}
+                  icon={({ size, color }) => (
+                    <MaterialIcons name="phone" size={size} color={color} />
+                  )}
+                >
+                  Contact
+                </Button>
+                <Button
+                  mode="contained"
+                  onPress={() => openDirections(hospital.address)}
+                  icon={({ size, color }) => (
+                    <MaterialIcons
+                      name="directions"
+                      size={size}
+                      color={color}
+                    />
+                  )}
+                  textColor="white"
+                >
+                  Get Direction
+                </Button>
+              </Card.Actions>
+            </Card>
+          ))
+        )}
       </ScrollView>
     </SafeAreaView>
   );
